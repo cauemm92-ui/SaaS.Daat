@@ -148,6 +148,8 @@
     @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
   </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
 
@@ -162,21 +164,9 @@
       <p class="mono" style="font-size:11px;color:rgba(255,255,255,0.5);letter-spacing:1px;margin-bottom:14px">O ANALISTA QUE VOCÊ AINDA NÃO TEM</p>
       <h2 class="syne" style="font-size:30px;font-weight:800;color:#fff;line-height:1.2;margin-bottom:20px">Seus dados<br>falam.<br>A DAAT traduz.</h2>
       <p style="font-size:14px;color:rgba(255,255,255,0.75);line-height:1.75;margin-bottom:auto">Ferramentas como Power BI mostram gráficos.<br>A DAAT explica <strong style="color:#fff">o que fazer com eles</strong> — em português claro, sem precisar entender de dados.</p>
-      <div style="margin-top:40px">
-        <div style="background:rgba(255,255,255,0.1);border-radius:14px;padding:20px;margin-bottom:24px">
-          <p style="font-size:13px;color:rgba(255,255,255,0.9);font-style:italic;line-height:1.6;margin-bottom:12px">"Em 10 minutos já vi algo que não tinha percebido em meses. O sistema mostrou exatamente o que estava drenando meu caixa."</p>
-          <div style="display:flex;align-items:center;gap:10px">
-            <div style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:14px">⭐</div>
-            <div><p style="font-size:12px;font-weight:600;color:#fff">Cliente DAAT.</p><p style="font-size:11px;color:rgba(255,255,255,0.55)">Plano Analista Recorrente</p></div>
-          </div>
-        </div>
-        <div style="display:flex;">
-          <div style="text-align:center;flex:1"><p class="syne" style="font-size:22px;font-weight:800;color:#fff">+340</p><p style="font-size:11px;color:rgba(255,255,255,0.55)">PMEs atendidas</p></div>
-          <div style="width:1px;background:rgba(255,255,255,0.15)"></div>
-          <div style="text-align:center;flex:1"><p class="syne" style="font-size:22px;font-weight:800;color:#fff">4,9★</p><p style="font-size:11px;color:rgba(255,255,255,0.55)">Avaliação média</p></div>
-          <div style="width:1px;background:rgba(255,255,255,0.15)"></div>
-          <div style="text-align:center;flex:1"><p class="syne" style="font-size:22px;font-weight:800;color:#fff">R$ 497</p><p style="font-size:11px;color:rgba(255,255,255,0.55)">/mês no plano</p></div>
-        </div>
+      <div style="background:rgba(255,255,255,0.08);border-radius:10px;padding:16px 18px;border:1px solid rgba(255,255,255,0.12);margin-top:24px">
+        <p style="font-size:12px;color:rgba(255,255,255,0.5);font-family:monospace;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">Diagnóstico gratuito</p>
+        <p style="font-size:13px;color:rgba(255,255,255,0.8);line-height:1.6">30 minutos para entender seu negócio e mostrar o que seus dados já podem revelar — sem compromisso.</p>
       </div>
     </div>
   </div>
@@ -196,7 +186,7 @@
         </div>
       </div>
       <button class="btn-ob" onclick="goStep(1)">Começar agora →</button>
-      <p style="text-align:center;margin-top:14px;font-size:13px;color:#9ca3af">Já tem conta? <a href="#" onclick="enterApp();return false;" style="color:#1e84c3;text-decoration:none;font-weight:600">Entrar</a></p>
+      <p style="text-align:center;margin-top:14px;font-size:13px;color:#9ca3af">Já tem conta? <a href="#" onclick="tentarEntrar();return false;" style="color:#1e84c3;text-decoration:none;font-weight:600">Entrar</a></p>
     </div>
 
     <!-- Step 1 -->
@@ -312,6 +302,8 @@
       <div class="nav-item active" data-page="dashboard" onclick="navigate('dashboard')"><span>⊞</span><span>Dashboard</span><span class="nav-badge">3</span></div>
       <div class="nav-item" data-page="relatorio" onclick="navigate('relatorio')"><span>📊</span><span>Relatório</span></div>
       <div class="nav-item" data-page="upload" onclick="navigate('upload')"><span>⬆</span><span>Enviar Dados</span></div>
+      <div class="nav-item" data-page="historico" onclick="navigate('historico')"><span>🗂</span><span>Histórico</span></div>
+      <div class="nav-item" data-page="planos" onclick="navigate('planos')"><span>⭐</span><span>Planos</span></div>
     </nav>
     <div style="margin-top:auto;border-top:1px solid #f3f4f6;padding-top:16px">
       <div style="display:flex;align-items:center;gap:10px;padding:8px">
@@ -338,7 +330,9 @@
     <div class="content">
       <div id="page-dashboard" class="page"></div>
       <div id="page-relatorio" class="page" style="display:none"></div>
-      <div id="page-upload"    class="page" style="display:none"></div>
+      <div id="page-historico" style="display:none;height:100%;overflow-y:auto;padding:0"></div>
+  <div id="page-planos" style="display:none;height:100%;overflow-y:auto;padding:0"></div>
+  <div id="page-upload"    class="page" style="display:none"></div>
     </div>
   </div>
 </div>
@@ -577,7 +571,7 @@ function buildRelatorio(){
   var c=document.getElementById('page-relatorio');
   var nome=USER.nome||'Meu Negócio';
   var ins=INSIGHTS[USER.segmento||'outro']||INSIGHTS.outro;
-  c.innerHTML='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px"><div><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span class="badge badge-info">RELATÓRIO</span><span class="badge badge-demo">DEMONSTRAÇÃO</span></div><h1 class="syne" style="font-weight:800;font-size:26px;color:#1d1d1d;margin-bottom:4px">Relatório — Abril 2026</h1><p style="font-size:15px;color:#6b7280">'+nome+' · Gerado pela DAAT.</p></div><div style="display:flex;gap:10px;flex-shrink:0"><button class="btn-secondary" onclick="navigate(\'upload\')">⬆ Enviar dados reais</button><button class="btn-primary" onclick="window.print()">⬇ Exportar PDF</button></div></div>';
+  c.innerHTML='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px"><div><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span class="badge badge-info">RELATÓRIO</span><span class="badge badge-demo">DEMONSTRAÇÃO</span></div><h1 class="syne" style="font-weight:800;font-size:26px;color:#1d1d1d;margin-bottom:4px">Relatório — Abril 2026</h1><p style="font-size:15px;color:#6b7280">'+nome+' · Gerado pela DAAT.</p></div><div style="display:flex;gap:10px;flex-shrink:0"><button class="btn-secondary" onclick="navigate(\'upload\')">⬆ Enviar dados reais</button><button class="btn-primary" onclick="gerarPDF()">⬇ Exportar PDF</button></div></div>';
 
   var exec=document.createElement('div');exec.className='card';exec.style.marginBottom='24px';
   exec.innerHTML='<div style="display:flex;align-items:center;gap:10px;margin-bottom:18px"><div style="width:4px;height:24px;background:#1e84c3;border-radius:2px"></div><h2 class="syne" style="font-weight:700;font-size:18px;color:#1d1d1d">Resumo Executivo</h2></div>';
@@ -618,6 +612,447 @@ function buildUpload(){
   acc.innerHTML='<h4 class="syne" style="font-weight:700;font-size:15px;color:#1d1d1d;margin-bottom:14px">Sua conta</h4><div style="display:flex;flex-direction:column;gap:10px"><div style="display:flex;justify-content:space-between"><span style="font-size:13px;color:#6b7280">Empresa</span><span style="font-size:13px;font-weight:600;color:#1d1d1d">'+nome+'</span></div><div style="display:flex;justify-content:space-between"><span style="font-size:13px;color:#6b7280">Segmento</span><span style="font-size:13px;font-weight:600;color:#1d1d1d">'+(segLabels[USER.segmento]||'—')+'</span></div><div style="display:flex;justify-content:space-between"><span style="font-size:13px;color:#6b7280">Responsável</span><span style="font-size:13px;font-weight:600;color:#1d1d1d">'+(USER.user||'—')+'</span></div><div style="display:flex;justify-content:space-between"><span style="font-size:13px;color:#6b7280">Plano</span><span class="badge badge-info">Analista Recorrente</span></div><div style="display:flex;justify-content:space-between"><span style="font-size:13px;color:#6b7280">Trial</span><span style="font-size:13px;font-weight:600;color:#15803d">14 dias restantes</span></div></div>';
   side.appendChild(acc);grid.appendChild(side);c.appendChild(grid);
 }
+</script>
+<script>
+
+// ════════════════════════════════════════════════════════════════
+// DAAT SaaS — Extensões JS
+// Bloco separado — não modifica o script original
+// ════════════════════════════════════════════════════════════════
+
+var STORAGE_KEY   = 'daat_sessao_v1';
+var HISTORICO_KEY = 'daat_historico_v1';
+var DADOS_REAIS   = null;
+var ADMIN_URL     = 'https://script.google.com/macros/s/AKfycbxTJ6wEOVMuba17F_3IwphDMYTpcnNN4AjoMeYWvnkUk6LI6CVQqPtGFK8z2QY-RnIv/exec';
+var IA_URL        = 'https://api.anthropic.com/v1/messages';
+
+// ── UTILS ────────────────────────────────────────────────────────
+function mostrarToast(msg) {
+  var t = document.createElement('div');
+  t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(60px);background:#1d1d1d;color:white;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:500;z-index:9999;transition:transform 0.3s ease;box-shadow:0 4px 20px rgba(0,0,0,.3);border-left:3px solid #1e84c3;white-space:nowrap;';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(function(){ t.style.transform = 'translateX(-50%) translateY(0)'; }, 50);
+  setTimeout(function(){ t.style.transform = 'translateX(-50%) translateY(60px)'; setTimeout(function(){ t.remove(); }, 300); }, 3000);
+}
+
+// ── SESSAO ────────────────────────────────────────────────────────
+function salvarSessao() {
+  try {
+    var seg = USER.segmento || 'outro';
+    var sessao = { user: USER, insights: {}, dadosReais: DADOS_REAIS, paginaAtiva: currentPage || 'dashboard', ts: Date.now() };
+    if (INSIGHTS[seg]) sessao.insights[seg] = INSIGHTS[seg];
+    if (INSIGHTS['__ia__']) sessao.insights['__ia__'] = true;
+    if (INSIGHTS['__real__']) sessao.insights['__real__'] = true;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(sessao));
+  } catch(e) {}
+}
+
+function carregarSessao() {
+  try {
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    var s = JSON.parse(raw);
+    if (!s.ts || (Date.now() - s.ts) > 7*24*60*60*1000) { localStorage.removeItem(STORAGE_KEY); return null; }
+    s.ts = Date.now();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+    return s;
+  } catch(e) { return null; }
+}
+
+function limparSessao() { localStorage.removeItem(STORAGE_KEY); location.reload(); }
+
+// ── HISTORICO ─────────────────────────────────────────────────────
+function carregarHistorico() {
+  try { return JSON.parse(localStorage.getItem(HISTORICO_KEY) || '[]'); } catch(e) { return []; }
+}
+
+function salvarRelatorioNoHistorico() {
+  try {
+    var seg = USER.segmento || 'outro';
+    var segLabels = { barbearia:'Barbearia', restaurante:'Restaurante', varejo:'Varejo', saude:'Saúde', servicos:'Serviços', educacao:'Educação', outro:'Negócio' };
+    var ins = INSIGHTS[seg] || [];
+    if (!ins.length) return;
+    var hist = carregarHistorico();
+    hist.unshift({ id: Date.now(), data: new Date().toLocaleDateString('pt-BR'), hora: new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}), empresa: USER.nome||'Meu Negócio', segmento: segLabels[seg]||seg, insights: ins.length, geradoPorIA: !!INSIGHTS['__ia__'], dadosReais: !!INSIGHTS['__real__'], resumoInsights: ins.map(function(i){ return {titulo:i.titulo,impacto:i.impacto,badge:i.badge}; }) });
+    if (hist.length > 20) hist = hist.slice(0,20);
+    localStorage.setItem(HISTORICO_KEY, JSON.stringify(hist));
+  } catch(e) {}
+}
+
+// ── NAVIGATE EXTENDIDO ────────────────────────────────────────────
+var currentPage = 'dashboard';
+var _nav0 = navigate;
+navigate = function(page) {
+  currentPage = page;
+  // Garante que page-historico e page-planos sao controladas
+  var extras = ['historico','planos'];
+  extras.forEach(function(pg){ var el = document.getElementById('page-'+pg); if(el) el.style.display = pg===page ? '' : 'none'; });
+  _nav0(page);
+  // Constroi paginas extras na primeira vez
+  if (page === 'historico') buildHistorico();
+  if (page === 'planos')    buildPlanos();
+  salvarSessao();
+};
+
+// ── ENTERAPP EXTENDIDO ────────────────────────────────────────────
+var _ea0 = enterApp;
+enterApp = function() {
+  _ea0();
+  salvarSessao();
+  setTimeout(salvarRelatorioNoHistorico, 800);
+  setTimeout(function(){ enviarParaAdmin('onboarding_concluido'); }, 1200);
+  // Botao nova sessao no sidebar
+  setTimeout(function(){
+    var sb = document.querySelector('.sidebar');
+    if (!sb || document.getElementById('btn-nova-sessao')) return;
+    var btn = document.createElement('button');
+    btn.id = 'btn-nova-sessao';
+    btn.style.cssText = 'margin:0 16px 16px;padding:10px 14px;background:transparent;border:1px solid rgba(255,255,255,.1);border-radius:8px;color:rgba(255,255,255,.4);font-size:12px;cursor:pointer;width:calc(100% - 32px);text-align:left;transition:all .2s;font-family:inherit;';
+    btn.textContent = '↺ Nova sessão';
+    btn.onmouseover = function(){ btn.style.borderColor='rgba(255,255,255,.25)'; btn.style.color='rgba(255,255,255,.7)'; };
+    btn.onmouseout  = function(){ btn.style.borderColor='rgba(255,255,255,.1)';  btn.style.color='rgba(255,255,255,.4)'; };
+    btn.onclick = function(){ if(confirm('Iniciar nova sessão? Os dados serão apagados.')) limparSessao(); };
+    sb.appendChild(btn);
+  }, 300);
+};
+
+// ── SIMUPLOAD EXTENDIDO ───────────────────────────────────────────
+var _su0 = simUpload;
+simUpload = function() {
+  var zone = document.getElementById('ob-zone');
+  zone.classList.add('done');
+  zone.innerHTML = '<div style="text-align:center"><div style="font-size:40px;margin-bottom:10px">✅</div><p class="syne" style="font-weight:700;font-size:16px;color:#15803d;margin-bottom:4px">Arquivo recebido!</p><p style="font-size:13px;color:#6b7280">planilha-vendas.xlsx · 84 KB · 431 linhas</p></div>';
+  var dadosDemo = 'Segmento: '+(USER.segmento||'outro')+'. Empresa: '+(USER.nome||'Meu Negocio')+'. Periodo: Jan-Abr 2026. Faturamento total: R$ 63.400. Ticket medio: R$ 47,20. Total transacoes: 431. Clientes unicos: 234. Quinta-feira com queda de 40% no faturamento. 43 clientes com 10+ visitas sem programa de fidelidade. 55% vendas sao servico simples, 28% combo.';
+  setTimeout(function(){
+    goStep(3);
+    gerarInsightsIA(dadosDemo, USER.segmento||'outro', USER.nome||'Meu Negocio')
+      .then(function(ins){ INSIGHTS[USER.segmento||'outro'] = ins; INSIGHTS['__ia__'] = true; salvarRelatorioNoHistorico(); enviarParaAdmin('insights_gerados'); })
+      .catch(function(){ console.warn('IA indisponivel'); });
+  }, 900);
+};
+
+// ── BUILDUPLOAD EXTENDIDO ─────────────────────────────────────────
+var _bu0 = buildUpload;
+buildUpload = function() {
+  _bu0();
+  setTimeout(function(){
+    var zone = document.querySelector('#page-upload .upload-zone');
+    if (zone) configurarUploadReal(zone);
+  }, 100);
+};
+
+// ── SHEETJS — UPLOAD REAL ─────────────────────────────────────────
+function lerPlanilha(file, cb) {
+  var r = new FileReader();
+  r.onload = function(e) {
+    try {
+      var wb = XLSX.read(new Uint8Array(e.target.result), {type:'array'});
+      var ws = wb.Sheets[wb.SheetNames[0]];
+      var rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+      if (!rows || rows.length < 2) { cb({erro:'Planilha vazia.'}); return; }
+      var headers = rows[0].map(function(h){ return String(h).trim(); });
+      var data = rows.slice(1).filter(function(r){ return r.some(function(c){ return c!==''&&c!==null; }); });
+      var resumo = resumirDados(headers, data, file.name);
+      cb({ok:true, resumo:resumo, headers:headers, totalLinhas:data.length});
+    } catch(err) { cb({erro:'Erro: '+err.message}); }
+  };
+  r.readAsArrayBuffer(file);
+}
+
+function resumirDados(headers, rows, fileName) {
+  var r = 'Arquivo: '+fileName+'. Registros: '+rows.length+'. Colunas: '+headers.join(', ')+'. ';
+  var vi = -1;
+  ['valor','total','faturamento','receita','venda','preco'].forEach(function(k){ headers.forEach(function(h,i){ if(vi<0 && h.toLowerCase().includes(k)) vi=i; }); });
+  if (vi>=0) {
+    var soma=0,cnt=0,min=Infinity,max=0;
+    rows.forEach(function(row){ var v=parseFloat(String(row[vi]).replace(/[R$.\s]/g,'').replace(',','.')); if(!isNaN(v)&&v>0){soma+=v;cnt++;if(v<min)min=v;if(v>max)max=v;} });
+    if(cnt>0) r+='Faturamento total: R$'+soma.toFixed(2)+', media: R$'+(soma/cnt).toFixed(2)+'. ';
+  }
+  var si = -1;
+  ['servico','produto','item','descricao','tipo'].forEach(function(k){ headers.forEach(function(h,i){ if(si<0 && h.toLowerCase().includes(k)) si=i; }); });
+  if (si>=0) {
+    var freq={};
+    rows.forEach(function(row){ var v=String(row[si]).trim(); if(v) freq[v]=(freq[v]||0)+1; });
+    var top = Object.keys(freq).sort(function(a,b){return freq[b]-freq[a];}).slice(0,5);
+    r += 'Top itens: '+top.map(function(k){return k+'('+freq[k]+'x)';}).join(', ')+'. ';
+  }
+  return r;
+}
+
+function configurarUploadReal(zoneEl) {
+  // Remove o onclick inline que impede o listener de funcionar
+  zoneEl.removeAttribute('onclick');
+
+  var input = document.createElement('input');
+  input.type='file'; input.accept='.xlsx,.xls,.csv'; input.style.display='none';
+  document.body.appendChild(input);
+
+  function processar(file) {
+    zoneEl.innerHTML = '<div style="text-align:center;padding:20px"><div style="font-size:36px;margin-bottom:12px">⏳</div><p class="syne" style="font-weight:700;font-size:16px;color:#1e84c3">Lendo '+file.name+'...</p></div>';
+    lerPlanilha(file, function(res){
+      if (res.erro) {
+        zoneEl.innerHTML = '<div style="text-align:center;padding:20px"><div style="font-size:36px">⚠️</div><p style="color:#dc2626;font-weight:600">'+res.erro+'</p></div>';
+        return;
+      }
+      zoneEl.innerHTML = '<div style="text-align:center;padding:16px"><div style="font-size:36px;margin-bottom:10px">✅</div><p class="syne" style="font-weight:700;font-size:15px;color:#15803d">'+file.name+'</p><p style="font-size:13px;color:#6b7280">'+res.totalLinhas+' registros · '+res.headers.slice(0,4).join(', ')+'</p></div>';
+      DADOS_REAIS = res.resumo;
+      setTimeout(function(){
+        gerarInsightsIA(res.resumo, USER.segmento||'outro', USER.nome||'Meu Negocio')
+          .then(function(ins){ INSIGHTS[USER.segmento||'outro']=ins; INSIGHTS['__ia__']=true; INSIGHTS['__real__']=true; navigate('dashboard'); })
+          .catch(function(){ navigate('dashboard'); });
+      }, 800);
+    });
+  }
+
+  // Clique na zona ou no botao interno abre o seletor
+  zoneEl.addEventListener('click', function(e){ input.click(); });
+  input.addEventListener('change', function(){ if(input.files&&input.files[0]) processar(input.files[0]); });
+  zoneEl.addEventListener('dragover', function(e){ e.preventDefault(); zoneEl.style.borderColor='#1e84c3'; zoneEl.style.background='#f0f7fd'; });
+  zoneEl.addEventListener('dragleave', function(){ zoneEl.style.borderColor=''; zoneEl.style.background=''; });
+  zoneEl.addEventListener('drop', function(e){ e.preventDefault(); zoneEl.style.borderColor=''; zoneEl.style.background=''; if(e.dataTransfer.files[0]) processar(e.dataTransfer.files[0]); });
+}
+
+// ── IA ANTHROPIC ──────────────────────────────────────────────────
+async function gerarInsightsIA(dados, seg, nome) {
+  var segLabels = { barbearia:'Barbearia', restaurante:'Restaurante', varejo:'Varejo', saude:'Saúde', servicos:'Serviços', educacao:'Educação', outro:'Negócio' };
+  var prompt = 'Voce e um analista de dados senior para pequenas e medias empresas brasileiras. Analise os dados de "'+nome+'" ('+( segLabels[seg]||seg)+') e gere 3 insights acionaveis. DADOS: '+dados+' INSTRUCOES: portugues claro para o dono do negocio, sem jargao. Responda APENAS em JSON valido sem markdown: {"insights":[{"icon":"emoji","titulo":"titulo curto","impacto":"ALTO","badge":"badge-alto","desc":"descricao 2 frases","sug":"sugestao acionavel"}]} badge: badge-alto=ALTO, badge-medio=MEDIO, badge-gray=BAIXO.';
+  var resp = await fetch(IA_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:1000, messages:[{role:'user',content:prompt}] }) });
+  if (!resp.ok) throw new Error('API '+resp.status);
+  var data = await resp.json();
+  var text = data.content[0].text.trim().replace(/```json|```/g,'').trim();
+  return JSON.parse(text).insights;
+}
+
+// ── ADMIN SHEETS ──────────────────────────────────────────────────
+function enviarParaAdmin(evento) {
+  try {
+    var seg = USER.segmento||'outro';
+    var segLabels = { barbearia:'Barbearia', restaurante:'Restaurante', varejo:'Varejo', saude:'Saúde', servicos:'Serviços', educacao:'Educação', outro:'Outro' };
+    var payload = { empresa:USER.nome||'Sem nome', segmento:segLabels[seg]||seg, plano:'P3 — Analista Recorrente', insights:(INSIGHTS[seg]||[]).length, ia:INSIGHTS['__ia__']?'Sim':'Não', ultimoAcesso:new Date().toLocaleString('pt-BR'), evento:evento||'acesso' };
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', ADMIN_URL, true);
+    xhr.setRequestHeader('Content-Type','text/plain');
+    xhr.send(JSON.stringify(payload));
+  } catch(e) {}
+}
+
+// ── PDF EXPORT ────────────────────────────────────────────────────
+function gerarPDF() {
+  var btn = event.target;
+  btn.disabled = true; btn.textContent = '⟳ Gerando...';
+  try {
+    var doc = new window.jspdf.jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+    var W=210, H=297;
+    var nome = USER.nome||'Meu Negócio';
+    var seg  = USER.segmento||'outro';
+    var segLabels = {barbearia:'Barbearia',restaurante:'Restaurante',varejo:'Varejo',saude:'Saúde',servicos:'Serviços',educacao:'Educação',outro:'Negócio'};
+    var ins  = INSIGHTS[seg]||INSIGHTS.outro||[];
+    var data = new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
+    var mes  = new Date().toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+
+    // CAPA
+    doc.setFillColor(13,29,45); doc.rect(0,0,W,H,'F');
+    doc.setFillColor(30,132,195); doc.rect(0,0,4,H,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(28); doc.setTextColor(255,255,255);
+    doc.text('DAAT',20,30);
+    doc.setTextColor(30,132,195); doc.text('.',20+doc.getTextWidth('DAAT'),30);
+    doc.setFontSize(38); doc.setTextColor(255,255,255);
+    doc.text('Relatório de',20,95); doc.text('Insights',20,113);
+    doc.setTextColor(30,132,195); doc.text(mes+'.',20,131);
+    doc.setDrawColor(30,132,195); doc.setLineWidth(1.5); doc.line(20,139,90,139);
+    doc.setFont('helvetica','normal'); doc.setFontSize(12); doc.setTextColor(255,255,255,0.7);
+    doc.text(nome,20,153);
+    doc.setFontSize(10); doc.setTextColor(150,150,150);
+    doc.text(segLabels[seg]+' · Gerado em '+data,20,161);
+    doc.setFontSize(8); doc.setTextColor(100,100,100);
+    doc.text('daat.comercial@gmail.com · @daat.tech · Confidencial',W/2,H-10,{align:'center'});
+
+    // PAG 2
+    doc.addPage();
+    doc.setFillColor(244,244,246); doc.rect(0,0,W,H,'F');
+    doc.setFillColor(29,29,29); doc.rect(0,0,W,14,'F');
+    doc.setFillColor(30,132,195); doc.rect(0,14,W,1.5,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(255,255,255);
+    doc.text('DAAT.',20,9);
+    doc.setFont('helvetica','normal'); doc.setTextColor(160,160,160);
+    doc.text('  |  '+nome,33,9);
+    doc.setTextColor(120,120,120); doc.text('Pág. 2',W-20,9,{align:'right'});
+
+    var py = 26;
+    doc.setFillColor(30,132,195); doc.rect(20,py,3,18,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(14); doc.setTextColor(29,29,29);
+    doc.text('Insights Identificados',26,py+12);
+    doc.setDrawColor(200,200,210); doc.setLineWidth(0.3); doc.line(26,py+16,W-20,py+16);
+    py += 26;
+
+    var cores = {'badge-alto':[239,68,68],'badge-medio':[245,158,11],'badge-green':[34,197,94],'badge-gray':[107,114,128]};
+    var impLabels = {'badge-alto':'ALTO','badge-medio':'MÉDIO','badge-green':'ALTO','badge-gray':'BAIXO'};
+    ins.forEach(function(item,i){
+      var c = cores[item.badge]||[107,114,128];
+      doc.setFillColor(255,255,255); doc.roundedRect(20,py,W-40,46,3,3,'F');
+      doc.setFillColor(c[0],c[1],c[2]); doc.rect(20,py,W-40,2.5,'F');
+      doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(c[0],c[1],c[2]);
+      doc.text(String(i+1).padStart(2,'0'),29,py+13,{align:'center'});
+      doc.setFontSize(11); doc.setTextColor(29,29,29);
+      doc.text(item.titulo||'',38,py+13);
+      var bl = 'IMPACTO: '+(impLabels[item.badge]||'MÉDIO');
+      doc.setFontSize(7); doc.setTextColor(c[0],c[1],c[2]);
+      doc.text(bl,W-22,py+12,{align:'right'});
+      doc.setDrawColor(240,240,244); doc.setLineWidth(0.3); doc.line(24,py+20,W-24,py+20);
+      doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(80,80,80);
+      var dlines = doc.splitTextToSize(item.desc||'',W-56);
+      doc.text(dlines.slice(0,2),38,py+27);
+      doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(30,132,195);
+      doc.text('→',24,py+39);
+      doc.setFont('helvetica','normal'); doc.setTextColor(60,100,140);
+      var slines = doc.splitTextToSize(item.sug||'',W-56);
+      doc.text(slines[0]||'',30,py+39);
+      py += 52;
+    });
+
+    doc.setFillColor(29,29,29); doc.rect(0,H-14,W,14,'F');
+    doc.setFillColor(30,132,195); doc.rect(0,H-14,W,1.5,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(255,255,255);
+    doc.text('DAAT.',20,H-5.5);
+    doc.setFont('helvetica','normal'); doc.setTextColor(130,130,130);
+    doc.text('daat.comercial@gmail.com',W/2,H-5.5,{align:'center'});
+    doc.setTextColor(100,100,100);
+    doc.text(data,W-20,H-5.5,{align:'right'});
+
+    var fname = 'DAAT_'+nome.replace(/[^a-zA-Z0-9]/g,'_')+'_'+new Date().toISOString().slice(0,10)+'.pdf';
+    doc.save(fname);
+  } catch(err) { alert('Erro PDF: '+err.message); }
+  finally { btn.disabled=false; btn.innerHTML='⬇ Exportar PDF'; }
+}
+
+// ── HISTORICO PAGE ────────────────────────────────────────────────
+function buildHistorico() {
+  var c = document.getElementById('page-historico');
+  if (!c || c.innerHTML.trim()) return;
+  var hist = carregarHistorico();
+  var h = '<div style="padding:28px 32px">';
+  h += '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px"><div><h1 class="syne" style="font-weight:800;font-size:26px;color:#1d1d1d;margin-bottom:6px">Histórico de Relatórios</h1><p style="font-size:14px;color:#6b7280">Análises geradas para '+(USER.nome||'Meu Negócio')+'</p></div><button onclick="navigate(\'upload\')" class="btn-primary" style="font-size:14px;padding:12px 20px">+ Nova Análise</button></div>';
+  if (!hist.length) {
+    h += '<div style="text-align:center;padding:80px 40px;background:white;border-radius:16px;border:1.5px solid #e5e7eb"><div style="font-size:64px;margin-bottom:20px">🗂</div><h3 class="syne" style="font-weight:700;font-size:20px;margin-bottom:10px">Nenhum relatório ainda</h3><p style="font-size:14px;color:#6b7280;max-width:360px;margin:0 auto 24px">Gere seus primeiros insights no dashboard ou envie uma planilha.</p><button onclick="navigate(\'upload\')" class="btn-primary">Enviar planilha</button></div>';
+  } else {
+    var totalIA = hist.filter(function(r){return r.geradoPorIA;}).length;
+    h += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px">';
+    h += '<div class="card" style="padding:16px 20px"><p class="mono" style="font-size:10px;color:#9ca3af;letter-spacing:.5px;margin-bottom:6px">TOTAL DE ANÁLISES</p><p class="syne" style="font-weight:800;font-size:28px;color:#1d1d1d">'+hist.length+'</p></div>';
+    h += '<div class="card" style="padding:16px 20px"><p class="mono" style="font-size:10px;color:#9ca3af;letter-spacing:.5px;margin-bottom:6px">GERADAS POR IA</p><p class="syne" style="font-weight:800;font-size:28px;color:#1e84c3">'+totalIA+'</p></div>';
+    h += '<div class="card" style="padding:16px 20px"><p class="mono" style="font-size:10px;color:#9ca3af;letter-spacing:.5px;margin-bottom:6px">ÚLTIMO ACESSO</p><p class="syne" style="font-weight:800;font-size:20px;color:#8b5cf6">'+(hist[0]?hist[0].data:'—')+'</p></div>';
+    h += '</div><div style="display:flex;flex-direction:column;gap:12px">';
+    hist.forEach(function(rel,i){
+      var bc=rel.geradoPorIA?'rgba(30,132,195,.08)':'rgba(107,114,128,.08)';
+      var tc=rel.geradoPorIA?'#1e84c3':'#6b7280';
+      var bl=rel.geradoPorIA?'✦ IA':'⊞ Demo';
+      h += '<div class="card" style="padding:20px 24px;cursor:pointer" onclick="navigate(\'relatorio\')">';
+      h += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">';
+      h += '<div><div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><p class="syne" style="font-weight:700;font-size:15px;color:#1d1d1d">Análise #'+(hist.length-i)+' — '+rel.empresa+'</p><span style="font-size:10px;background:'+bc+';color:'+tc+';padding:2px 8px;border-radius:3px;font-family:monospace">'+bl+'</span></div><p style="font-size:12px;color:#9ca3af">'+rel.segmento+' · '+rel.data+' às '+rel.hora+' · '+rel.insights+' insights</p></div>';
+      h += '<button onclick="event.stopPropagation();navigate(\'relatorio\')" class="btn-secondary" style="font-size:12px;padding:8px 14px">Ver →</button></div>';
+      h += '<div style="display:flex;gap:8px;flex-wrap:wrap">';
+      (rel.resumoInsights||[]).forEach(function(ins){
+        var bg=ins.badge==='badge-alto'?'rgba(239,68,68,.08)':ins.badge==='badge-medio'?'rgba(245,158,11,.08)':'rgba(107,114,128,.08)';
+        var cl=ins.badge==='badge-alto'?'#dc2626':ins.badge==='badge-medio'?'#d97706':'#6b7280';
+        h += '<span style="font-size:11px;background:'+bg+';color:'+cl+';padding:4px 10px;border-radius:4px">'+ins.titulo+'</span>';
+      });
+      h += '</div></div>';
+    });
+    h += '</div>';
+  }
+  h += '</div>';
+  c.innerHTML = h;
+}
+
+// ── PLANOS PAGE ───────────────────────────────────────────────────
+function buildPlanos() {
+  var c = document.getElementById('page-planos');
+  if (!c || c.innerHTML.trim()) return;
+  var planos = [
+    {id:'p1',num:'P1',cor:'#22c55e',corBg:'rgba(34,197,94,.08)',nome:'Formulário Personalizado',tipo:'Único',valor:'R$ 359',periodo:'pagamento único',itens:['Formulário digital personalizado para o seu segmento','Integração com Google Sheets — dados limpos','Entrega em até 5 dias úteis','1 rodada de ajustes gratuita'],cta:'Contratar P1',destaque:false},
+    {id:'p2',num:'P2',cor:'#1e84c3',corBg:'rgba(30,132,195,.08)',nome:'Análise dos Dados',tipo:'Único',valor:'R$ 897',periodo:'pagamento único',itens:['Análise completa dos dados do seu negócio','Relatório de insights em linguagem humana','Recomendações priorizadas com impacto estimado','Apresentação de 30 min por videochamada'],cta:'Contratar P2',destaque:true},
+    {id:'p3',num:'P3',cor:'#8b5cf6',corBg:'rgba(139,92,246,.08)',nome:'Analista Recorrente',tipo:'Mensal',valor:'R$ 497',periodo:'/ mês',itens:['Monitoramento mensal dos seus dados','Relatório mensal de insights e variações','Reunião mensal de 30 min + suporte WhatsApp','Cancela quando quiser após 3 meses'],cta:'Plano Atual',destaque:false}
+  ];
+  var h = '<div style="padding:28px 32px">';
+  h += '<div style="margin-bottom:24px"><h1 class="syne" style="font-weight:800;font-size:26px;color:#1d1d1d;margin-bottom:6px">Planos e Upgrade</h1><p style="font-size:14px;color:#6b7280">Escolha o plano ideal para o momento do seu negócio</p></div>';
+  h += '<div style="background:linear-gradient(135deg,#0a1929,#0d2235);border-radius:12px;padding:20px 24px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:center"><div><p class="syne" style="font-weight:700;font-size:15px;color:white;margin-bottom:4px">Por que DAAT em vez de analista CLT?</p><p style="font-size:13px;color:rgba(255,255,255,.5)">Analista CLT: R$ 8.000+/mês com encargos · DAAT: a partir de R$ 359</p></div><div style="text-align:right"><p class="syne" style="font-weight:800;font-size:28px;color:#22c55e;letter-spacing:-1px">-90%</p><p style="font-size:10px;color:rgba(255,255,255,.3);font-family:monospace">NO CUSTO MENSAL</p></div></div>';
+  h += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px">';
+  planos.forEach(function(p){
+    var isAtual = p.id==='p3';
+    h += '<div style="background:white;border-radius:12px;border:'+(isAtual?'2px solid '+p.cor:'1.5px solid #e5e7eb')+';padding:24px;display:flex;flex-direction:column;position:relative;overflow:hidden">';
+    if(p.destaque) h += '<div style="position:absolute;top:0;right:0;background:'+p.cor+';color:white;font-size:10px;font-weight:600;padding:4px 12px;border-radius:0 12px 0 8px;font-family:monospace">POPULAR</div>';
+    if(isAtual) h += '<div style="position:absolute;top:0;left:0;right:0;height:3px;background:'+p.cor+';border-radius:12px 12px 0 0"></div>';
+    h += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><div style="width:32px;height:32px;border-radius:8px;background:'+p.corBg+';display:flex;align-items:center;justify-content:center;font-family:monospace;font-size:11px;font-weight:700;color:'+p.cor+'">'+p.num+'</div><p class="syne" style="font-weight:700;font-size:13px;color:#1d1d1d">'+p.nome+'</p></div>';
+    h += '<div style="margin-bottom:14px"><span class="syne" style="font-weight:800;font-size:30px;color:'+p.cor+';letter-spacing:-1px">'+p.valor+'</span><span style="font-size:13px;color:#9ca3af;margin-left:4px">'+p.periodo+'</span></div>';
+    h += '<div style="flex:1;display:flex;flex-direction:column;gap:7px;margin-bottom:18px">';
+    p.itens.forEach(function(it){ h += '<div style="display:flex;gap:8px;align-items:flex-start"><span style="color:'+p.cor+';font-size:12px;margin-top:1px;flex-shrink:0">✓</span><span style="font-size:12px;color:#374151;line-height:1.45">'+it+'</span></div>'; });
+    h += '</div>';
+    if(isAtual) { h += '<div style="text-align:center;padding:10px;background:'+p.corBg+';border-radius:8px;border:1.5px solid rgba(139,92,246,.2)"><p style="font-size:13px;font-weight:600;color:'+p.cor+'">✓ Plano atual</p></div>'; }
+    else { h += '<a href="https://wa.me/5511999999999" target="_blank" style="display:block;text-align:center;padding:11px;background:'+p.cor+';color:white;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none">'+p.cta+' →</a>'; }
+    h += '</div>';
+  });
+  h += '</div>';
+  h += '<div style="text-align:center;padding:24px;background:linear-gradient(135deg,rgba(30,132,195,.04),rgba(30,132,195,.08));border-radius:12px;border:1px solid rgba(30,132,195,.15)"><p class="syne" style="font-weight:700;font-size:16px;color:#1d1d1d;margin-bottom:6px">Diagnóstico gratuito de 30 min</p><p style="font-size:13px;color:#6b7280;margin-bottom:16px">Entendemos seu negócio e indicamos o melhor plano — sem compromisso.</p><a href="https://wa.me/5511999999999" target="_blank" style="display:inline-block;padding:13px 28px;background:#1e84c3;color:white;border-radius:8px;font-size:14px;font-weight:600;text-decoration:none">Agendar diagnóstico →</a></div>';
+  h += '</div>';
+  c.innerHTML = h;
+}
+
+// ── JA TENHO CONTA ────────────────────────────────────────────────
+function tentarEntrar() {
+  var sessao = carregarSessao();
+  if (sessao && sessao.user && sessao.user.nome) {
+    USER.nome = sessao.user.nome||''; USER.user = sessao.user.user||'';
+    USER.segmento = sessao.user.segmento||''; USER.porte = sessao.user.porte||'';
+    if (sessao.insights) {
+      var seg = USER.segmento||'outro';
+      if (sessao.insights[seg]) INSIGHTS[seg] = sessao.insights[seg];
+      if (sessao.insights['__ia__']) INSIGHTS['__ia__'] = true;
+      if (sessao.insights['__real__']) INSIGHTS['__real__'] = true;
+    }
+    if (sessao.dadosReais) DADOS_REAIS = sessao.dadosReais;
+    enterApp();
+    setTimeout(function(){ mostrarToast('Bem-vindo de volta, '+(USER.user||'você')+'! 👋'); navigate(sessao.paginaAtiva||'dashboard'); }, 400);
+  } else {
+    var ex = document.getElementById('msg-conta'); if(ex) ex.remove();
+    var msg = document.createElement('div');
+    msg.id = 'msg-conta';
+    msg.style.cssText = 'background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:8px;padding:10px 14px;margin-top:12px;font-size:13px;color:#92400e;display:flex;align-items:center;gap:8px;';
+    msg.innerHTML = '<span>⚠️</span> Nenhuma sessão encontrada. Complete o cadastro abaixo.';
+    var link = document.querySelector('a[onclick*="tentarEntrar"]');
+    if (link && link.parentNode) link.parentNode.insertAdjacentElement('afterend', msg);
+    setTimeout(function(){ if(msg&&msg.parentNode) msg.remove(); }, 4000);
+    goStep(1);
+  }
+}
+
+// ── AUTO-RESTORE ──────────────────────────────────────────────────
+// Roda apos o DOM estar pronto e todas as funcoes definidas
+window.addEventListener('DOMContentLoaded', function() {
+  var sessao = carregarSessao();
+  if (!sessao || !sessao.user || !sessao.user.nome) return;
+  USER.nome = sessao.user.nome||''; USER.user = sessao.user.user||'';
+  USER.segmento = sessao.user.segmento||''; USER.porte = sessao.user.porte||'';
+  if (sessao.insights) {
+    var seg = USER.segmento||'outro';
+    if (sessao.insights[seg]) INSIGHTS[seg] = sessao.insights[seg];
+    if (sessao.insights['__ia__']) INSIGHTS['__ia__'] = true;
+    if (sessao.insights['__real__']) INSIGHTS['__real__'] = true;
+  }
+  if (sessao.dadosReais) DADOS_REAIS = sessao.dadosReais;
+  var onb = document.getElementById('onboarding');
+  var app = document.getElementById('app');
+  if (onb && app) {
+    // Usa enterApp() para construir corretamente todas as paginas
+    // antes de navegar — evita pagina em branco
+    enterApp();
+    setTimeout(function(){
+      navigate(sessao.paginaAtiva||'dashboard');
+      mostrarToast('Bem-vindo de volta, '+(USER.user||'você')+'! 👋');
+    }, 200);
+  }
+});
+
+
 </script>
 </body>
 </html>
